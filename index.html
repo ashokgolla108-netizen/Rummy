@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rummy Master</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKzv5R78MFRzG4bCLB_flI8tbP29ia5AQ",
+            authDomain: "rummy-34a88.firebaseapp.com",
+            databaseURL: "https://rummy-34a88-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rummy-34a88",
+            storageBucket: "rummy-34a88.firebasestorage.app",
+            messagingSenderId: "1026979501644",
+            appId: "1:1026979501644:web:a59ba0c59fb04c26b3c6e9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Expose Firebase functions to global window for the inline scripts
+        window.db = db;
+        window.ref = ref; 
+        window.set = set; 
+        window.onValue = onValue; 
+        window.get = get;
+    </script>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --primary: #3b82f6; --success: #22c55e; --danger: #ef4444; --warning: #f59e0b; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 10px; margin: 0; }
+        .container { max-width: 500px; margin: auto; }
+        #loginScreen { background: var(--card); padding: 30px; border-radius: 15px; text-align: center; margin-top: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .setup-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .setup-row div { flex: 1; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        td { background: var(--card); padding: 12px; border-radius: 8px; }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s; }
+        button:active { opacity: 0.7; }
+        input, select { background: #334155; color: white; border: 1px solid #475569; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        .section { background: var(--card); padding: 15px; border-radius: 10px; margin-top: 15px; font-size: 14px; border-left: 4px solid var(--primary); }
+        .out-player { opacity: 0.5; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loginScreen">
+        <h2 style="color: var(--primary);">🃏 Rummy Master</h2>
+        <p style="font-size: 0.9em; color: #94a3b8;">Enter Nickname and PIN to sync</p>
+        <input type="text" id="nickname" placeholder="Nickname (e.g. Ashok)" style="margin-bottom:15px;">
+        <input type="password" id="pin" placeholder="PIN" style="margin-bottom:20px;">
+        <button onclick="loginUser()" style="background:var(--primary); width:100%; font-size: 16px;">ENTER GAME</button>
+    </div>
+
+    <div id="gameContent" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="userTitle">Rummy Master</h2>
+            <button onclick="location.reload()" style="background:var(--danger); padding: 5px 10px; font-size: 12px;">Logout</button>
+        </div>
+        
+        <div class="setup-row">
+            <div><small>Point Limit:</small>
+                <select id="pointLimit" onchange="saveData()">
+                    <option value="101">101 Points</option>
+                    <option value="201">201 Points</option>
+                </select>
+            </div>
+            <div><small>Entry Fee (₹):</small>
+                <input id="matchAmount" type="number" value="50" onchange="saveData()">
+            </div>
+        </div>
+
+        <table id="playerTable"></table>
+
+        <div class="btn-row">
+            <button onclick="addRound()" style="background:var(--success)">Add Round</button>
+            <button onclick="undoRound()" style="background:var(--warning)">Undo Last</button>
+            <button onclick="addPlayer()" style="background:#64748b">+ New Player</button>
+            <button onclick="completeMatch()" style="background:var(--primary)">Finish Match</button>
+        </div>
+
+        <div class="section">
+            <b>💰 RECORD PAYOUT</b>
+            <div style="margin-top:10px;">
+                <label>Winner:</label>
+                <select id="winnerSelect" style="margin-bottom: 8px;"></select>
+                <label style="display:block; margin-bottom:5px;">Payers:</label>
+                <div id="payerList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
+                <button onclick="addPayout()" style="background:var(--primary); width:100%;">Save Payout</button>
+            </div>
+            <div id="payoutsList" style="margin-top:10px; border-top: 1px solid #475569; padding-top: 10px;"></div>
+        </div>
+
+        <div class="section"><b>📜 RECENT ROUNDS</b><div id="history" style="margin-top:5px; line-height: 1.6;"></div></div>
+        <div class="section"><b>🏆 ARCHIVE</b><div id="archive" style="margin-top:5px;"></div></div>
+    </div>
+</div>
+
+<script>
+    let players = [], rounds = [], payouts = [], archive = [], currentUser = "";
+
+    async function loginUser() {
+        const nick = document.getElementById("nickname").value.trim();
+        const pin = document.getElementById("pin").value.trim();
+        
+        if(!nick || !pin) return alert("Please enter Nickname and PIN");
+
+        const userRef = window.ref(window.db, 'users/' + nick);
+        const snapshot = await window.get(userRef);
+
+        if (!snapshot.exists()) {
+            // New account creation
+            const confirmNew = confirm("User not found. Create new account with this PIN?");
+            if(!confirmNew) return;
+            await window.set(userRef, { pin, players: [], rounds: [], payouts: [], archive: [], limit: 101, amount: 50 });
+        } else if (snapshot.val().pin !== pin) {
+            return alert("Incorrect PIN for this nickname!");
+        }
+
+        currentUser = nick;
+        window.dbRef = userRef;
+        document.getElementById("userTitle").innerText = "Master: " + nick;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("gameContent").style.display = "block";
+
+        // Listen for live updates
+        window.onValue(window.dbRef, (snap) => {
+            const data = snap.val();
+            if(!data) return;
+            players = data.players || []; 
+            rounds = data.rounds || []; 
+            payouts = data.payouts || []; 
+            archive = data.archive || [];
+            document.getElementById('pointLimit').value = data.limit || 101;
+            document.getElementById('matchAmount').value = data.amount || 50;
+            renderTable();
+        });
+    }
+
+    function renderTable() {
+        // Sort players by points (lowest to highest)
+        const sortedPlayers = [...players].sort((a, b) => a.total - b.total);
+        const limit = parseInt(document.getElementById("pointLimit").value);
+        
+        document.getElementById('playerTable').innerHTML = sortedPlayers.map(p => {
+            const isOut = p.total >= limit;
+            return `<tr>
+                <td style="width:30px"><button onclick="removePlayer(${p.id})" style="background:none; color:var(--danger); font-size:18px;">×</button></td>
+                <td><input value="${p.name}" onchange="updateName(${p.id}, this.value)" style="border:none; background:transparent; font-weight:bold;"></td>
+                <td style="width:80px"><input id="s${p.id}" type="number" ${isOut ? 'disabled placeholder="OUT"' : 'placeholder="Pts"'} style="text-align:center;"></td>
+                <td style="text-align:right; width:60px; font-weight:bold; color:${isOut? 'var(--danger)' : 'var(--success)'}">${p.total} ${isOut?'❌':''}</td>
+            </tr>`;
+        }).join('');
+
+        // Update Winner/Payer dropdowns
+        document.getElementById("winnerSelect").innerHTML = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+        document.getElementById("payerList").innerHTML = players.map(p => `<label style="background:#334155; padding:5px 10px; border-radius:15px;"><input type="checkbox" name="p" value="${p.name}"> ${p.name}</label>`).join('');
+        
+        // Update History
+        document.getElementById("history").innerHTML = rounds.map((r, i) => `<b>R${i+1}:</b> ${Object.entries(r).map(([id,pts]) => {
+            const pName = players.find(pl=>pl.id == id)?.name || "User";
+            return `${pName}(${pts})`;
+        }).join(', ')}`).reverse().join('<br>');
+
+        // Update Payouts
+        document.getElementById("payoutsList").innerHTML = payouts.map(p => `<div style="margin-bottom:5px;">✅ <b>${p.w}</b> received <b>₹${p.amt}</b> from ${p.f}</div>`).join('');
+        
+        // Update Archive
+        document.getElementById("archive").innerHTML = archive.map(a => `<div style="border-bottom:1px solid #334155; padding:6px 0; font-size:12px; color:#94a3b8;">${a}</div>`).reverse().join('');
+    }
+
+    function addPlayer() {
+        const name = prompt("Enter Player Name:");
+        if(!name) return;
+        players.push({id: Date.now(), name: name, total: 0}); 
+        saveData(); 
+    }
+
+    function removePlayer(id) {
+        if(confirm("Delete this player?")) {
+            players = players.filter(p => p.id !== id); 
+            saveData(); 
+        }
+    }
+
+    function updateName(id, val) { 
+        const p = players.find(p => p.id === id);
+        if(p) p.name = val; 
+        saveData(); 
+    }
+
+    function addRound() {
+        const limit = parseInt(document.getElementById('pointLimit').value);
+        let currentRound = {}; 
+        players.forEach(p => { 
+            const input = document.getElementById(`s${p.id}`);
+            const val = parseInt(input.value) || 0;
+            if (p.total < limit) { 
+                p.total += val; 
+            }
+            currentRound[p.id] = val; 
+            input.value = ""; 
+        });
+        rounds.push(currentRound); 
+        saveData();
+    }
+
+    function undoRound() { 
+        if(rounds.length === 0) return alert("No rounds to undo!");
+        if(confirm("Undo the last round scoring?")) {
+            const lastRound = rounds.pop(); 
+            players.forEach(p => {
+                if(lastRound[p.id]) p.total -= lastRound[p.id];
+            }); 
+            saveData(); 
+        }
+    }
+
+    function addPayout() {
+        const winner = document.getElementById("winnerSelect").value;
+        const selectedPayers = Array.from(document.querySelectorAll('input[name="p"]:checked')).map(c => c.value);
+        const amountPerHead = parseInt(document.getElementById("matchAmount").value);
+
+        if(!winner || selectedPayers.length === 0) return alert("Select the winner and at least one payer.");
+        
+        payouts.push({
+            w: winner, 
+            amt: selectedPayers.length * amountPerHead, 
+            f: selectedPayers.join(', ')
+        });
+        saveData();
+    }
+
+    function completeMatch() { 
+        if(!confirm("Are you sure? This will archive the current game and reset scores.")) return;
+        
+        const limit = parseInt(document.getElementById('pointLimit').value);
+        const winners = players.filter(p => p.total < limit).map(p => p.name).join(', ');
+        const date = new Date().toLocaleString();
+        
+        const summary = `${date} | 🏆 Winners: ${winners} | Payouts: ${payouts.length}`;
+        archive.push(summary);
+        
+        // Reset game state
+        rounds = []; 
+        payouts = []; 
+        players.forEach(p => p.total = 0); 
+        saveData(); 
+    }
+
+    function saveData() {
+        if(!window.dbRef) return;
+        window.set(window.dbRef, { 
+            pin: document.getElementById("pin").value, 
+            players, 
+            rounds, 
+            payouts, 
+            archive, 
+            limit: document.getElementById('pointLimit').value, 
+            amount: document.getElementById('matchAmount').value 
+        });
+    }
+</script>
+</body>
+</html>
