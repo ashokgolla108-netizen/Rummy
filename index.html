@@ -4,17 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Rummy Master Pro</title>
-    
     <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#020617">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8024/8024460.png">
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
-        
         const firebaseConfig = {
             apiKey: "AIzaSyBKzv5R78MFRzG4bCLB_flI8tbP29ia5AQ",
             authDomain: "rummy-34a88.firebaseapp.com",
@@ -23,108 +16,54 @@
             storageBucket: "rummy-34a88.firebasestorage.app",
             appId: "1:1026979501644:web:a59ba0c59fb04c26b3c6e9"
         };
-
         const app = initializeApp(firebaseConfig);
         window.db = getDatabase(app);
         window.ref = ref; window.set = set; window.onValue = onValue; window.get = get;
-        
-        if ('service-worker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        if ('service-worker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     </script>
-
     <style>
         :root { --bg: #020617; --glass: rgba(30, 41, 59, 0.7); --primary: #38bdf8; --accent: #818cf8; --success: #4ade80; --danger: #f87171; --text: #f1f5f9; }
-        
-        body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            background: radial-gradient(circle at top right, #1e1b4b, #020617); 
-            color: var(--text); margin: 0; padding: 15px; min-height: 100vh;
-            transition: background 0.3s ease;
-        }
-
+        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at top right, #1e1b4b, #020617); color: var(--text); margin: 0; padding: 15px; min-height: 100vh; }
         .container { max-width: 450px; margin: auto; }
-        
-        /* Glassmorphism Cards */
-        .card { 
-            background: var(--glass); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 24px; padding: 20px; 
-            margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        }
-        
-        h2 { 
-            font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; 
-            background: linear-gradient(to right, var(--primary), var(--accent)); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-        }
-        
-        input, select { 
-            background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid #334155; 
-            padding: 14px; border-radius: 14px; width: 100%; box-sizing: border-box; 
-            font-size: 16px; margin-bottom: 10px; outline: none;
-        }
-        
-        button { 
-            border-radius: 14px; border: none; padding: 16px; font-weight: 700; 
-            cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; 
-        }
-        button:active { transform: scale(0.95); opacity: 0.8; }
-
+        .card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { font-weight: 800; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 20px 0; }
+        input, select { background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid #334155; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
+        button { border-radius: 12px; border: none; padding: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; }
         .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; }
-
-        /* Player Table */
-        .player-row { 
-            display: flex; align-items: center; background: rgba(255,255,255,0.03); 
-            padding: 14px; border-radius: 18px; margin-bottom: 12px; border-left: 4px solid transparent; 
-        }
+        .player-row { display: flex; align-items: center; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid transparent; }
         .player-row.leader { border-left-color: var(--success); background: rgba(74, 222, 128, 0.08); }
-        .player-row.out { opacity: 0.3; border-left-color: var(--danger); filter: grayscale(1); }
-        
-        .player-name { flex: 1; font-weight: 600; font-size: 16px; }
-        .player-score { font-size: 22px; font-weight: 900; width: 60px; text-align: right; color: var(--primary); }
-        .pts-input { width: 75px; margin: 0 10px; text-align: center; background: #0f172a; border-color: var(--accent); }
-
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-        /* Chips for Payouts */
-        .chip { 
-            background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 25px; 
-            font-size: 13px; display: inline-block; margin: 5px; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
-        }
-        .chip.active { background: var(--primary); color: #020617; font-weight: bold; transform: translateY(-2px); }
-
-        /* Animation for saving */
-        @keyframes saveFlash { 0% { background: var(--bg); } 50% { background: #064e3b; } 100% { background: var(--bg); } }
-        .saving-flash { animation: saveFlash 0.6s ease; }
+        .player-row.out { opacity: 0.3; border-left-color: var(--danger); }
+        .player-name { flex: 1; font-weight: 600; }
+        .player-score { font-size: 20px; font-weight: 900; width: 50px; text-align: right; color: var(--primary); }
+        .pts-input { width: 70px; margin: 0 10px; text-align: center; background: #0f172a; border-color: var(--accent); }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .chip { background: rgba(255,255,255,0.05); padding: 8px 14px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .chip.active { background: var(--primary); color: #020617; font-weight: bold; }
     </style>
 </head>
-<body id="mainBody">
+<body>
 
 <div class="container">
     <div id="loginScreen" class="card" style="margin-top: 80px; text-align: center;">
         <h2>RUMMY MASTER</h2>
-        <p style="color: #64748b; margin-bottom: 20px;">Secure Match Sync</p>
-        <input type="text" id="nickname" placeholder="Nickname (e.g. Ashok)">
+        <input type="text" id="nickname" placeholder="Username">
         <input type="password" id="pin" placeholder="PIN">
-        <button onclick="loginUser()" class="btn-primary" style="width: 100%;">Connect to Table</button>
+        <button onclick="loginUser()" class="btn-primary" style="width: 100%;">Connect</button>
     </div>
 
     <div id="gameContent" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-            <h2 id="userTitle" style="margin: 0;">Lobby</h2>
-            <button onclick="logout()" class="btn-ghost" style="padding: 8px 15px; font-size: 11px; border-color: var(--danger); color: var(--danger);">LOGOUT</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 id="userTitle">Lobby</h2>
+            <button onclick="logout()" class="btn-ghost" style="padding:6px 12px; font-size:11px; color:var(--danger);">LOGOUT</button>
         </div>
 
-        <div class="card" style="padding: 15px; margin-bottom: 15px;">
-            <div style="display:flex; gap:12px;">
-                <div style="flex:1"><label style="font-size:10px; color:#94a3b8; font-weight:bold;">LIMIT</label>
+        <div class="card" style="padding: 15px;">
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1"><label style="font-size:10px; color:#94a3b8;">LIMIT</label>
                     <select id="pointLimit" onchange="saveData()"><option value="101">101 Pts</option><option value="201">201 Pts</option></select>
                 </div>
-                <div style="flex:1"><label style="font-size:10px; color:#94a3b8; font-weight:bold;">ENTRY (₹)</label>
+                <div style="flex:1"><label style="font-size:10px; color:#94a3b8;">ENTRY (₹)</label>
                     <input id="matchAmount" type="number" value="50" onchange="saveData()">
                 </div>
             </div>
@@ -133,160 +72,142 @@
         <div id="playerList"></div>
 
         <div class="action-grid">
-            <button onclick="addRound()" class="btn-primary" style="grid-column: span 2; background: var(--success); color: #064e3b;">Post Round</button>
+            <button onclick="addRound()" class="btn-primary" style="grid-column: span 2; background: var(--success); color:#064e3b;">Post Round</button>
             <button onclick="addPlayer()" class="btn-ghost">+ Player</button>
-            <button onclick="undoRound()" class="btn-ghost" style="color: var(--danger);">Undo</button>
-            <button onclick="completeMatch()" class="btn-primary" style="grid-column: span 2; margin-top:10px; background: var(--accent);">Finalize Match</button>
+            <button onclick="undoRound()" class="btn-ghost" style="color:var(--danger);">Undo</button>
+            <button onclick="completeMatch()" class="btn-primary" style="grid-column: span 2; margin-top:10px; background:var(--accent);">Archive Match</button>
         </div>
 
-        <div class="card" style="margin-top:25px; border-top: 3px solid var(--primary);">
-            <h3 style="margin-top:0; font-size: 18px; color: var(--primary);">💰 Payout Calculator</h3>
-            <label style="font-size:11px; color:#94a3b8;">MATCH WINNER</label>
+        <div class="card" style="margin-top:25px;">
+            <h4 style="margin:0 0 15px 0; color:var(--primary);">💰 PAYOUT CALCULATOR</h4>
             <select id="winnerSelect" onchange="calcPot()"></select>
-            
-            <label style="font-size:11px; color:#94a3b8; margin-top: 10px; display: block;">SELECT PAYERS</label>
-            <div id="payerChips" style="margin-bottom: 15px;"></div>
-            
-            <div id="potDisplay" style="background: rgba(74, 222, 128, 0.1); padding: 15px; border-radius: 12px; font-size: 20px; font-weight: 900; text-align: center; color: var(--success); margin-bottom: 15px;">Total Pot: ₹0</div>
-            
-            <button onclick="addPayout()" class="btn-primary" style="width:100%; font-size: 14px;">Confirm Payout</button>
-            <div id="payoutHistory" style="margin-top:20px; font-size:12px; opacity:0.7; border-top: 1px solid #334155; padding-top: 10px;"></div>
+            <div id="payerChips" style="margin-bottom:10px;"></div>
+            <div id="potDisplay" style="background:rgba(74,222,128,0.1); padding:12px; border-radius:12px; font-weight:900; text-align:center; color:var(--success); margin-bottom:10px;">Pot: ₹0</div>
+            <button onclick="addPayout()" class="btn-primary" style="width:100%; font-size:13px;">Save Payout</button>
+            <div id="payoutHistory" style="margin-top:15px; font-size:11px; opacity:0.7;"></div>
         </div>
 
         <div class="card">
-            <h4 style="margin-top:0; color:#64748b;">MATCH HISTORY</h4>
-            <div id="history" style="font-size:12px; line-height:2; max-height: 150px; overflow-y: auto;"></div>
+            <h4 style="margin:0 0 10px 0; color:#64748b;">DAYWISE HISTORY</h4>
+            <div id="archive" style="max-height:300px; overflow-y:auto;"></div>
+            <button onclick="if(confirm('Clear all history?')) { archive=[]; saveData(); }" style="background:none; color:var(--danger); font-size:10px; padding:0; margin-top:15px; width:100%; text-align:center;">Clear Archive</button>
         </div>
     </div>
 </div>
 
 <script>
-    let players = [], rounds = [], payouts = [], archive = [], currentUser = "";
-    let selectedPayers = [];
+    let players=[], rounds=[], payouts=[], archive=[], currentUser="", selectedPayers=[];
 
-    // Auto-login logic
     window.addEventListener('load', () => {
-        const n = localStorage.getItem("rummy_nick"), p = localStorage.getItem("rummy_pin");
-        if (n && p) { document.getElementById("nickname").value = n; document.getElementById("pin").value = p; loginUser(true); }
+        const n=localStorage.getItem("rummy_nick"), p=localStorage.getItem("rummy_pin");
+        if(n && p) { document.getElementById("nickname").value=n; document.getElementById("pin").value=p; loginUser(true); }
     });
 
-    async function loginUser(auto = false) {
-        const nick = document.getElementById("nickname").value.trim(), pin = document.getElementById("pin").value.trim();
+    async function loginUser(auto=false) {
+        const nick=document.getElementById("nickname").value.trim(), pin=document.getElementById("pin").value.trim();
         if(!nick || !pin) return;
-        const uRef = window.ref(window.db, 'users/' + nick), snap = await window.get(uRef);
-        
-        if (!snap.exists()) {
+        const ref=window.ref(window.db, 'users/'+nick), snap=await window.get(ref);
+        if(!snap.exists()) {
             if(auto) return;
-            if(confirm("New Nickname! Create account?")) await window.set(uRef, { pin, players: [], rounds: [], payouts: [], archive: [], limit: 101, amount: 50 }); else return;
-        } else if (snap.val().pin !== pin) { if(auto) return; return alert("Wrong PIN"); }
-        
+            if(confirm("Create account?")) await window.set(ref, {pin, players:[], rounds:[], payouts:[], archive:[], limit:101, amount:50}); else return;
+        } else if(snap.val().pin!==pin) { if(auto) return; return alert("Wrong PIN"); }
         localStorage.setItem("rummy_nick", nick); localStorage.setItem("rummy_pin", pin);
-        currentUser = nick; window.dbRef = uRef;
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("gameContent").style.display = "block";
-        document.getElementById("userTitle").innerText = nick.toUpperCase();
-
+        currentUser=nick; window.dbRef=ref;
+        document.getElementById("loginScreen").style.display="none";
+        document.getElementById("gameContent").style.display="block";
+        document.getElementById("userTitle").innerText=nick.toUpperCase();
         window.onValue(window.dbRef, s => {
-            const d = s.val(); if(!d) return;
-            players = d.players || []; rounds = d.rounds || []; payouts = d.payouts || []; archive = d.archive || [];
-            document.getElementById('pointLimit').value = d.limit || 101;
-            document.getElementById('matchAmount').value = d.amount || 50;
+            const d=s.val(); if(!d) return;
+            players=d.players||[]; rounds=d.rounds||[]; payouts=d.payouts||[]; archive=d.archive||[];
+            document.getElementById('pointLimit').value=d.limit||101; document.getElementById('matchAmount').value=d.amount||50;
             render();
         });
     }
 
     function render() {
-        const limit = parseInt(document.getElementById("pointLimit").value);
-        const sorted = [...players].sort((a, b) => a.total - b.total);
-        
-        document.getElementById('playerList').innerHTML = sorted.map((p, idx) => {
-            const isOut = p.total >= limit;
-            return `<div class="player-row ${idx === 0 && !isOut ? 'leader' : ''} ${isOut ? 'out' : ''}">
-                <div onclick="removePlayer(${p.id})" style="color:var(--danger); margin-right:15px; font-weight:bold; cursor:pointer; font-size: 20px;">×</div>
+        const lim=parseInt(document.getElementById("pointLimit").value);
+        const sorted=[...players].sort((a,b)=>a.total-b.total);
+        document.getElementById('playerList').innerHTML = sorted.map((p,idx) => {
+            const isOut=p.total>=lim;
+            return `<div class="player-row ${idx===0 && !isOut?'leader':''} ${isOut?'out':''}">
+                <div onclick="removePlayer(${p.id})" style="color:var(--danger); cursor:pointer; font-weight:bold; margin-right:12px;">×</div>
                 <div class="player-name">${p.name}</div>
-                <input id="s${p.id}" type="number" class="pts-input" ${isOut ? 'disabled placeholder="OUT"' : 'placeholder="+"'}>
+                <input id="s${p.id}" type="number" class="pts-input" ${isOut?'disabled placeholder="OUT"':'placeholder="+"'}>
                 <div class="player-score">${p.total}</div>
             </div>`;
         }).join('');
-
-        document.getElementById("winnerSelect").innerHTML = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-        document.getElementById("payerChips").innerHTML = players.map(p => {
-            const activeClass = selectedPayers.includes(p.name) ? 'active' : '';
-            return `<div class="chip ${activeClass}" onclick="togglePayer('${p.name}')">${p.name}</div>`;
-        }).join('');
+        document.getElementById("winnerSelect").innerHTML = players.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+        document.getElementById("payerChips").innerHTML = players.map(p=>`<div class="chip ${selectedPayers.includes(p.name)?'active':''}" onclick="togglePayer('${p.name}')">${p.name}</div>`).join('');
+        document.getElementById("payoutHistory").innerHTML = payouts.map(p=>`<div>💸 ${p.w} collected ₹${p.amt} from ${p.f}</div>`).reverse().join('');
         
-        document.getElementById("history").innerHTML = rounds.map((r, i) => `<b>Round ${i+1}:</b> ${Object.entries(r).map(([id,pts]) => (players.find(pl=>pl.id==id)?.name || "P") + "("+pts+")").join(', ')}`).reverse().join('<br>');
-        document.getElementById("payoutHistory").innerHTML = payouts.map(p => `<div>✅ ${p.w} collected ₹${p.amt} from ${p.f}</div>`).reverse().join('');
+        // Render Grouped Daywise Archive
+        const grouped = archive.reduce((acc, m) => {
+            const d = m.date || "Old Matches";
+            if(!acc[d]) acc[d]=[]; acc[d].push(m); return acc;
+        }, {});
+        document.getElementById("archive").innerHTML = Object.keys(grouped).reverse().map(date => `
+            <div style="margin-top:15px; font-size:11px;">
+                <div style="color:var(--primary); font-weight:bold; border-bottom:1px solid #334155; padding-bottom:3px; margin-bottom:8px;">${date}</div>
+                ${grouped[date].reverse().map(m => `
+                    <div style="margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.03); border-radius:8px;">
+                        <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; margin-bottom:3px;">
+                            <span>${m.time || ''}</span> <span style="color:var(--success)">🏆 ${m.winners}</span>
+                        </div>
+                        <div style="font-size:11px; opacity:0.8;">${m.summary}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
         calcPot();
     }
 
     function togglePayer(name) {
-        if(selectedPayers.includes(name)) selectedPayers = selectedPayers.filter(n => n !== name);
-        else selectedPayers.push(name);
-        render(); // Refresh chips and calculation
+        if(selectedPayers.includes(name)) selectedPayers=selectedPayers.filter(n=>n!==name);
+        else selectedPayers.push(name); render();
     }
-
-    function calcPot() {
-        const amt = selectedPayers.length * parseInt(document.getElementById("matchAmount").value);
-        document.getElementById("potDisplay").innerText = `Total Pot: ₹${amt}`;
-    }
-
+    function calcPot() { const amt=selectedPayers.length*parseInt(document.getElementById("matchAmount").value); document.getElementById("potDisplay").innerText=`Pot: ₹${amt}`; }
+    
     function addRound() {
-        document.getElementById('mainBody').classList.add('saving-flash');
-        setTimeout(() => document.getElementById('mainBody').classList.remove('saving-flash'), 600);
-        
-        const lim = parseInt(document.getElementById('pointLimit').value);
-        let roundData = {}; 
-        players.forEach(p => {
-            const val = parseInt(document.getElementById(`s${p.id}`).value) || 0;
-            if (p.total < lim) p.total += val;
-            roundData[p.id] = val; 
-            document.getElementById(`s${p.id}`).value = "";
+        const lim=parseInt(document.getElementById('pointLimit').value);
+        let rd={}; players.forEach(p=>{
+            const val=parseInt(document.getElementById(`s${p.id}`).value)||0;
+            if(p.total<lim) p.total+=val; rd[p.id]=val; document.getElementById(`s${p.id}`).value="";
         });
-        rounds.push(roundData); 
-        saveData();
+        rounds.push(rd); saveData();
     }
 
-    function undoRound() { 
-        if(rounds.length === 0) return alert("No rounds to undo!");
-        if(confirm("Undo last round? Scores will revert.")) {
-            const lastRound = rounds.pop(); 
-            players.forEach(p => { if(lastRound[p.id]) p.total -= lastRound[p.id]; }); 
-            saveData(); 
+    function undoRound() {
+        if(rounds.length && confirm("Undo last round?")) {
+            const rd=rounds.pop(); players.forEach(p=>{ if(rd[p.id]) p.total-=rd[p.id]; }); saveData();
         }
     }
 
-    function addPlayer() { const n = prompt("Player Name:"); if(n) { players.push({id: Date.now(), name: n, total: 0}); saveData(); } }
-    function removePlayer(id) { if(confirm("Permanently delete player?")) { players = players.filter(p => p.id !== id); saveData(); } }
-    
-    function addPayout() {
-        const w = document.getElementById("winnerSelect").value;
-        if(selectedPayers.length === 0) return alert("Please select who is paying!");
-        const amt = selectedPayers.length * parseInt(document.getElementById("matchAmount").value);
-        payouts.push({ w, amt, f: selectedPayers.join(', ') });
-        selectedPayers = []; // Reset for next payout
-        saveData();
-    }
-
     function completeMatch() {
-        if(!confirm("End match and archive winners?")) return;
-        const lim = parseInt(document.getElementById('pointLimit').value);
-        const winList = players.filter(p => p.total < lim).map(p => p.name).join(', ');
-        archive.push(`${new Date().toLocaleDateString()} | Winners: ${winList}`);
-        rounds = []; payouts = []; players.forEach(p => p.total = 0);
-        saveData();
+        if(!players.length || !confirm("Archive and reset scores?")) return;
+        const lim=parseInt(document.getElementById('pointLimit').value);
+        const winList=players.filter(p=>p.total<lim).map(p=>p.name).join(', ');
+        const now=new Date();
+        archive.push({
+            date: now.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}),
+            time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+            winners: winList,
+            summary: players.map(p=>`${p.name}: ${p.total}`).join(' | ')
+        });
+        rounds=[]; payouts=[]; players.forEach(p=>p.total=0); saveData();
     }
 
-    function logout() { if(confirm("Exit game?")) { localStorage.clear(); location.reload(); } }
-
+    function addPlayer() { const n=prompt("Name:"); if(n) {players.push({id:Date.now(), name:n, total:0}); saveData();} }
+    function removePlayer(id) { if(confirm("Remove?")) {players=players.filter(p=>p.id!==id); saveData();} }
+    function addPayout() {
+        const w=document.getElementById("winnerSelect").value;
+        if(!selectedPayers.length) return alert("Select payers!");
+        payouts.push({w, amt:selectedPayers.length*parseInt(document.getElementById("matchAmount").value), f:selectedPayers.join(', ')});
+        selectedPayers=[]; saveData();
+    }
+    function logout() { if(confirm("Logout?")) {localStorage.clear(); location.reload();} }
     function saveData() {
         if(!window.dbRef) return;
-        const pin = document.getElementById("pin").value || localStorage.getItem("rummy_pin");
-        window.set(window.dbRef, { 
-            pin: pin, players, rounds, payouts, archive, 
-            limit: document.getElementById('pointLimit').value, 
-            amount: document.getElementById('matchAmount').value 
-        });
+        window.set(window.dbRef, {pin:localStorage.getItem("rummy_pin"), players, rounds, payouts, archive, limit:document.getElementById('pointLimit').value, amount:document.getElementById('matchAmount').value});
     }
 </script>
 </body>
