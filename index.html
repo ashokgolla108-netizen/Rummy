@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Rummy Master Pro</title>
+    
     <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#020617">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8024/8024460.png">
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyBKzv5R78MFRzG4bCLB_flI8tbP29ia5AQ",
             authDomain: "rummy-34a88.firebaseapp.com",
@@ -16,63 +23,108 @@
             storageBucket: "rummy-34a88.firebasestorage.app",
             appId: "1:1026979501644:web:a59ba0c59fb04c26b3c6e9"
         };
+
         const app = initializeApp(firebaseConfig);
         window.db = getDatabase(app);
         window.ref = ref; window.set = set; window.onValue = onValue; window.get = get;
-        if ('service-worker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+        
+        if ('service-worker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
     </script>
+
     <style>
         :root { --bg: #020617; --glass: rgba(30, 41, 59, 0.7); --primary: #38bdf8; --accent: #818cf8; --success: #4ade80; --danger: #f87171; --text: #f1f5f9; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: radial-gradient(circle at top right, #1e1b4b, #020617); color: var(--text); margin: 0; padding: 15px; min-height: 100vh; }
+        
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: radial-gradient(circle at top right, #1e1b4b, #020617); 
+            color: var(--text); margin: 0; padding: 15px; min-height: 100vh;
+            transition: background 0.3s ease;
+        }
+
         .container { max-width: 450px; margin: auto; }
         
-        /* Glass Cards */
-        .card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* Glassmorphism Cards */
+        .card { 
+            background: var(--glass); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 24px; padding: 20px; 
+            margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
         
-        h2 { font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { 
+            font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; 
+            background: linear-gradient(to right, var(--primary), var(--accent)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
         
-        /* Inputs & Buttons */
-        input, select { background: rgba(15, 23, 42, 0.6); color: white; border: 1px solid #334155; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
-        button { border-radius: 12px; border: none; padding: 14px; font-weight: 700; cursor: pointer; transition: transform 0.1s, opacity 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        button:active { transform: scale(0.96); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); }
+        input, select { 
+            background: rgba(15, 23, 42, 0.8); color: white; border: 1px solid #334155; 
+            padding: 14px; border-radius: 14px; width: 100%; box-sizing: border-box; 
+            font-size: 16px; margin-bottom: 10px; outline: none;
+        }
         
-        /* Player Table */
-        .player-row { display: flex; align-items: center; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid transparent; }
-        .player-row.leader { border-left-color: var(--success); background: rgba(74, 222, 128, 0.05); }
-        .player-row.out { opacity: 0.4; border-left-color: var(--danger); }
-        .player-name { flex: 1; font-weight: 600; font-size: 16px; }
-        .player-score { font-size: 20px; font-weight: 800; width: 60px; text-align: right; }
-        .pts-input { width: 70px; margin: 0 10px; text-align: center; background: #0f172a; border-color: #1e293b; }
+        button { 
+            border-radius: 14px; border: none; padding: 16px; font-weight: 700; 
+            cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; 
+        }
+        button:active { transform: scale(0.95); opacity: 0.8; }
 
-        /* Grid Layout for Actions */
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .chip { background: #334155; padding: 6px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 4px; border: 1px solid #475569; }
-        .chip.active { background: var(--primary); border-color: var(--primary); color: #020617; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; }
+        .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; }
+
+        /* Player Table */
+        .player-row { 
+            display: flex; align-items: center; background: rgba(255,255,255,0.03); 
+            padding: 14px; border-radius: 18px; margin-bottom: 12px; border-left: 4px solid transparent; 
+        }
+        .player-row.leader { border-left-color: var(--success); background: rgba(74, 222, 128, 0.08); }
+        .player-row.out { opacity: 0.3; border-left-color: var(--danger); filter: grayscale(1); }
+        
+        .player-name { flex: 1; font-weight: 600; font-size: 16px; }
+        .player-score { font-size: 22px; font-weight: 900; width: 60px; text-align: right; color: var(--primary); }
+        .pts-input { width: 75px; margin: 0 10px; text-align: center; background: #0f172a; border-color: var(--accent); }
+
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* Chips for Payouts */
+        .chip { 
+            background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 25px; 
+            font-size: 13px; display: inline-block; margin: 5px; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
+        }
+        .chip.active { background: var(--primary); color: #020617; font-weight: bold; transform: translateY(-2px); }
+
+        /* Animation for saving */
+        @keyframes saveFlash { 0% { background: var(--bg); } 50% { background: #064e3b; } 100% { background: var(--bg); } }
+        .saving-flash { animation: saveFlash 0.6s ease; }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
 <div class="container">
-    <div id="loginScreen" class="card" style="margin-top: 60px; text-align: center;">
+    <div id="loginScreen" class="card" style="margin-top: 80px; text-align: center;">
         <h2>RUMMY MASTER</h2>
-        <input type="text" id="nickname" placeholder="Username">
+        <p style="color: #64748b; margin-bottom: 20px;">Secure Match Sync</p>
+        <input type="text" id="nickname" placeholder="Nickname (e.g. Ashok)">
         <input type="password" id="pin" placeholder="PIN">
-        <button onclick="loginUser()" class="btn-primary" style="width: 100%;">Access Vault</button>
+        <button onclick="loginUser()" class="btn-primary" style="width: 100%;">Connect to Table</button>
     </div>
 
     <div id="gameContent" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="userTitle" style="margin: 10px 0;">Lobby</h2>
-            <button onclick="logout()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); padding:6px 12px; font-size:12px;">EXIT</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <h2 id="userTitle" style="margin: 0;">Lobby</h2>
+            <button onclick="logout()" class="btn-ghost" style="padding: 8px 15px; font-size: 11px; border-color: var(--danger); color: var(--danger);">LOGOUT</button>
         </div>
 
-        <div class="card" style="padding: 15px;">
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1"><label style="font-size:10px; color:#64748b;">LIMIT</label>
+        <div class="card" style="padding: 15px; margin-bottom: 15px;">
+            <div style="display:flex; gap:12px;">
+                <div style="flex:1"><label style="font-size:10px; color:#94a3b8; font-weight:bold;">LIMIT</label>
                     <select id="pointLimit" onchange="saveData()"><option value="101">101 Pts</option><option value="201">201 Pts</option></select>
                 </div>
-                <div style="flex:1"><label style="font-size:10px; color:#64748b;">ENTRY (₹)</label>
+                <div style="flex:1"><label style="font-size:10px; color:#94a3b8; font-weight:bold;">ENTRY (₹)</label>
                     <input id="matchAmount" type="number" value="50" onchange="saveData()">
                 </div>
             </div>
@@ -81,33 +133,38 @@
         <div id="playerList"></div>
 
         <div class="action-grid">
-            <button onclick="addRound()" class="btn-primary" style="grid-column: span 2; background:var(--success); color:#064e3b;">Post Round Scores</button>
-            <button onclick="addPlayer()" style="background:#334155; color:white;">+ Add Player</button>
-            <button onclick="undoRound()" style="background:#334155; color:var(--danger);">Undo</button>
-            <button onclick="completeMatch()" class="btn-primary" style="grid-column: span 2; margin-top:10px;">End Match & Archive</button>
+            <button onclick="addRound()" class="btn-primary" style="grid-column: span 2; background: var(--success); color: #064e3b;">Post Round</button>
+            <button onclick="addPlayer()" class="btn-ghost">+ Player</button>
+            <button onclick="undoRound()" class="btn-ghost" style="color: var(--danger);">Undo</button>
+            <button onclick="completeMatch()" class="btn-primary" style="grid-column: span 2; margin-top:10px; background: var(--accent);">Finalize Match</button>
         </div>
 
-        <div class="card" style="margin-top:20px;">
-            <h4 style="margin-top:0; color:var(--primary);">💰 SMART PAYOUT</h4>
-            <label style="font-size:11px;">MATCH WINNER</label>
+        <div class="card" style="margin-top:25px; border-top: 3px solid var(--primary);">
+            <h3 style="margin-top:0; font-size: 18px; color: var(--primary);">💰 Payout Calculator</h3>
+            <label style="font-size:11px; color:#94a3b8;">MATCH WINNER</label>
             <select id="winnerSelect" onchange="calcPot()"></select>
-            <label style="font-size:11px; margin-top:10px;">SELECT PAYERS</label>
-            <div id="payerChips"></div>
-            <div id="potDisplay" style="margin: 15px 0; font-size: 18px; font-weight: 800; text-align: center; color: var(--success);">Pot: ₹0</div>
-            <button onclick="addPayout()" class="btn-primary" style="width:100%; background:var(--accent);">Record Payout</button>
-            <div id="payoutHistory" style="margin-top:15px; font-size:12px; opacity:0.8;"></div>
+            
+            <label style="font-size:11px; color:#94a3b8; margin-top: 10px; display: block;">SELECT PAYERS</label>
+            <div id="payerChips" style="margin-bottom: 15px;"></div>
+            
+            <div id="potDisplay" style="background: rgba(74, 222, 128, 0.1); padding: 15px; border-radius: 12px; font-size: 20px; font-weight: 900; text-align: center; color: var(--success); margin-bottom: 15px;">Total Pot: ₹0</div>
+            
+            <button onclick="addPayout()" class="btn-primary" style="width:100%; font-size: 14px;">Confirm Payout</button>
+            <div id="payoutHistory" style="margin-top:20px; font-size:12px; opacity:0.7; border-top: 1px solid #334155; padding-top: 10px;"></div>
         </div>
 
         <div class="card">
-            <h4 style="margin-top:0; color:#64748b;">HISTORY</h4>
-            <div id="history" style="font-size:12px; line-height:1.8;"></div>
+            <h4 style="margin-top:0; color:#64748b;">MATCH HISTORY</h4>
+            <div id="history" style="font-size:12px; line-height:2; max-height: 150px; overflow-y: auto;"></div>
         </div>
     </div>
 </div>
 
 <script>
     let players = [], rounds = [], payouts = [], archive = [], currentUser = "";
+    let selectedPayers = [];
 
+    // Auto-login logic
     window.addEventListener('load', () => {
         const n = localStorage.getItem("rummy_nick"), p = localStorage.getItem("rummy_pin");
         if (n && p) { document.getElementById("nickname").value = n; document.getElementById("pin").value = p; loginUser(true); }
@@ -116,14 +173,15 @@
     async function loginUser(auto = false) {
         const nick = document.getElementById("nickname").value.trim(), pin = document.getElementById("pin").value.trim();
         if(!nick || !pin) return;
-        const ref = window.ref(window.db, 'users/' + nick), snap = await window.get(ref);
+        const uRef = window.ref(window.db, 'users/' + nick), snap = await window.get(uRef);
+        
         if (!snap.exists()) {
             if(auto) return;
-            if(confirm("Create account?")) await window.set(ref, { pin, players: [], rounds: [], payouts: [], archive: [], limit: 101, amount: 50 }); else return;
+            if(confirm("New Nickname! Create account?")) await window.set(uRef, { pin, players: [], rounds: [], payouts: [], archive: [], limit: 101, amount: 50 }); else return;
         } else if (snap.val().pin !== pin) { if(auto) return; return alert("Wrong PIN"); }
         
         localStorage.setItem("rummy_nick", nick); localStorage.setItem("rummy_pin", pin);
-        currentUser = nick; window.dbRef = ref;
+        currentUser = nick; window.dbRef = uRef;
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("gameContent").style.display = "block";
         document.getElementById("userTitle").innerText = nick.toUpperCase();
@@ -144,7 +202,7 @@
         document.getElementById('playerList').innerHTML = sorted.map((p, idx) => {
             const isOut = p.total >= limit;
             return `<div class="player-row ${idx === 0 && !isOut ? 'leader' : ''} ${isOut ? 'out' : ''}">
-                <div onclick="removePlayer(${p.id})" style="color:var(--danger); margin-right:10px; font-weight:bold; cursor:pointer">×</div>
+                <div onclick="removePlayer(${p.id})" style="color:var(--danger); margin-right:15px; font-weight:bold; cursor:pointer; font-size: 20px;">×</div>
                 <div class="player-name">${p.name}</div>
                 <input id="s${p.id}" type="number" class="pts-input" ${isOut ? 'disabled placeholder="OUT"' : 'placeholder="+"'}>
                 <div class="player-score">${p.total}</div>
@@ -152,56 +210,83 @@
         }).join('');
 
         document.getElementById("winnerSelect").innerHTML = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-        document.getElementById("payerChips").innerHTML = players.map(p => `<div class="chip" id="chip-${p.id}" onclick="togglePayer('${p.name}', this)">${p.name}</div>`).join('');
-        document.getElementById("history").innerHTML = rounds.map((r, i) => `<b>R${i+1}:</b> ${Object.entries(r).map(([id,pts]) => (players.find(pl=>pl.id==id)?.name || "P") + ":"+pts).join(', ')}`).reverse().join('<br>');
-        document.getElementById("payoutHistory").innerHTML = payouts.map(p => `<div>💸 ${p.w} ← ₹${p.amt} (${p.f})</div>`).reverse().join('');
+        document.getElementById("payerChips").innerHTML = players.map(p => {
+            const activeClass = selectedPayers.includes(p.name) ? 'active' : '';
+            return `<div class="chip ${activeClass}" onclick="togglePayer('${p.name}')">${p.name}</div>`;
+        }).join('');
+        
+        document.getElementById("history").innerHTML = rounds.map((r, i) => `<b>Round ${i+1}:</b> ${Object.entries(r).map(([id,pts]) => (players.find(pl=>pl.id==id)?.name || "P") + "("+pts+")").join(', ')}`).reverse().join('<br>');
+        document.getElementById("payoutHistory").innerHTML = payouts.map(p => `<div>✅ ${p.w} collected ₹${p.amt} from ${p.f}</div>`).reverse().join('');
         calcPot();
     }
 
-    let selectedPayers = [];
-    function togglePayer(name, el) {
-        if(selectedPayers.includes(name)) { selectedPayers = selectedPayers.filter(n => n !== name); el.classList.remove('active'); }
-        else { selectedPayers.push(name); el.classList.add('active'); }
-        calcPot();
+    function togglePayer(name) {
+        if(selectedPayers.includes(name)) selectedPayers = selectedPayers.filter(n => n !== name);
+        else selectedPayers.push(name);
+        render(); // Refresh chips and calculation
     }
 
     function calcPot() {
         const amt = selectedPayers.length * parseInt(document.getElementById("matchAmount").value);
-        document.getElementById("potDisplay").innerText = `Pot Total: ₹${amt}`;
+        document.getElementById("potDisplay").innerText = `Total Pot: ₹${amt}`;
     }
 
     function addRound() {
+        document.getElementById('mainBody').classList.add('saving-flash');
+        setTimeout(() => document.getElementById('mainBody').classList.remove('saving-flash'), 600);
+        
         const lim = parseInt(document.getElementById('pointLimit').value);
-        let r = {}; players.forEach(p => {
+        let roundData = {}; 
+        players.forEach(p => {
             const val = parseInt(document.getElementById(`s${p.id}`).value) || 0;
             if (p.total < lim) p.total += val;
-            r[p.id] = val; document.getElementById(`s${p.id}`).value = "";
+            roundData[p.id] = val; 
+            document.getElementById(`s${p.id}`).value = "";
         });
-        rounds.push(r); saveData();
+        rounds.push(roundData); 
+        saveData();
     }
 
-    function addPlayer() { const n = prompt("Name:"); if(n) { players.push({id: Date.now(), name: n, total: 0}); saveData(); } }
-    function removePlayer(id) { if(confirm("Remove?")) { players = players.filter(p => p.id !== id); saveData(); } }
+    function undoRound() { 
+        if(rounds.length === 0) return alert("No rounds to undo!");
+        if(confirm("Undo last round? Scores will revert.")) {
+            const lastRound = rounds.pop(); 
+            players.forEach(p => { if(lastRound[p.id]) p.total -= lastRound[p.id]; }); 
+            saveData(); 
+        }
+    }
+
+    function addPlayer() { const n = prompt("Player Name:"); if(n) { players.push({id: Date.now(), name: n, total: 0}); saveData(); } }
+    function removePlayer(id) { if(confirm("Permanently delete player?")) { players = players.filter(p => p.id !== id); saveData(); } }
     
     function addPayout() {
         const w = document.getElementById("winnerSelect").value;
-        if(!w || selectedPayers.length === 0) return alert("Select payers!");
+        if(selectedPayers.length === 0) return alert("Please select who is paying!");
         const amt = selectedPayers.length * parseInt(document.getElementById("matchAmount").value);
         payouts.push({ w, amt, f: selectedPayers.join(', ') });
-        selectedPayers = [];
+        selectedPayers = []; // Reset for next payout
         saveData();
     }
 
     function completeMatch() {
-        if(!confirm("Complete Match?")) return;
-        archive.push(`${new Date().toLocaleDateString()} | ${players.map(p=>p.name+":"+p.total).join(' ')}`);
+        if(!confirm("End match and archive winners?")) return;
+        const lim = parseInt(document.getElementById('pointLimit').value);
+        const winList = players.filter(p => p.total < lim).map(p => p.name).join(', ');
+        archive.push(`${new Date().toLocaleDateString()} | Winners: ${winList}`);
         rounds = []; payouts = []; players.forEach(p => p.total = 0);
         saveData();
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    function logout() { if(confirm("Exit game?")) { localStorage.clear(); location.reload(); } }
+
     function saveData() {
-        window.set(window.dbRef, { pin: document.getElementById("pin").value, players, rounds, payouts, archive, limit: document.getElementById('pointLimit').value, amount: document.getElementById('matchAmount').value });
+        if(!window.dbRef) return;
+        const pin = document.getElementById("pin").value || localStorage.getItem("rummy_pin");
+        window.set(window.dbRef, { 
+            pin: pin, players, rounds, payouts, archive, 
+            limit: document.getElementById('pointLimit').value, 
+            amount: document.getElementById('matchAmount').value 
+        });
     }
 </script>
 </body>
