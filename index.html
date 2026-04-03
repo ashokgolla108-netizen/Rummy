@@ -40,9 +40,7 @@
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .chip { background: rgba(255,255,255,0.05); padding: 8px 14px; border-radius: 20px; font-size: 12px; display: inline-block; margin: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
         .chip.active { background: var(--primary); color: #020617; font-weight: bold; }
-        .scroll-area { max-height: 200px; overflow-y: auto; font-size: 11px; line-height: 1.8; padding-right: 5px; }
-        .scroll-area::-webkit-scrollbar { width: 4px; }
-        .scroll-area::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .scroll-area { max-height: 250px; overflow-y: auto; font-size: 11px; line-height: 1.8; }
     </style>
 </head>
 <body>
@@ -96,7 +94,7 @@
         </div>
 
         <div class="card">
-            <h4 style="margin:0 0 10px 0; color:#64748b;">📅 DAYWISE ARCHIVE</h4>
+            <h4 style="margin:0 0 10px 0; color:#64748b;">📅 DAYWISE HISTORY</h4>
             <div id="archive" class="scroll-area"></div>
             <button onclick="if(confirm('Clear all history?')) { archive=[]; saveData(); }" style="background:none; color:var(--danger); font-size:10px; padding:0; margin-top:15px; width:100%; text-align:center;">Clear Archive</button>
         </div>
@@ -149,22 +147,23 @@
         document.getElementById("payerChips").innerHTML = players.map(p=>`<div class="chip ${selectedPayers.includes(p.name)?'active':''}" onclick="togglePayer('${p.name}')">${p.name}</div>`).join('');
         document.getElementById("payoutHistory").innerHTML = payouts.map(p=>`<div>💸 ${p.w} collected ₹${p.amt} from ${p.f}</div>`).reverse().join('');
         
-        // Render CURRENT ROUND HISTORY
+        // Round History rendering
         document.getElementById("roundHistory").innerHTML = rounds.length === 0 ? "No rounds played yet." : 
             rounds.map((rd, i) => {
                 const roundDetails = Object.entries(rd).map(([id, pts]) => {
-                    const pName = players.find(p => p.id == id)?.name || "User";
+                    const pName = players.find(p => p.id == id)?.name || "P";
                     return `${pName}: ${pts}`;
                 }).join(', ');
                 return `<div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding: 4px 0;"><b>R${i+1}:</b> ${roundDetails}</div>`;
             }).reverse().join('');
 
-        // Render Grouped Daywise Archive
+        // FIXED DAYWISE ARCHIVE CALCULATION
         const grouped = archive.reduce((acc, m) => {
-            const d = m.date || "Old Matches";
+            const d = m.date || "Unknown Date";
             if(!acc[d]) acc[d]=[]; acc[d].push(m); return acc;
         }, {});
-        document.getElementById("archive").innerHTML = Object.keys(grouped).reverse().map(date => `
+        
+        const archiveHTML = Object.keys(grouped).reverse().map(date => `
             <div style="margin-top:10px;">
                 <div style="color:var(--primary); font-weight:bold; border-bottom:1px solid #334155; padding-bottom:3px; margin-bottom:8px;">${date}</div>
                 ${grouped[date].reverse().map(m => `
@@ -177,6 +176,8 @@
                 `).join('')}
             </div>
         `).join('');
+        
+        document.getElementById("archive").innerHTML = archiveHTML || "No matches archived yet.";
         calcPot();
     }
 
@@ -188,11 +189,14 @@
     
     function addRound() {
         const lim=parseInt(document.getElementById('pointLimit').value);
-        let rd={}; players.forEach(p=>{
+        let rd={}; 
+        let added = false;
+        players.forEach(p=>{
             const val=parseInt(document.getElementById(`s${p.id}`).value)||0;
-            if(p.total<lim) p.total+=val; rd[p.id]=val; document.getElementById(`s${p.id}`).value="";
+            if(p.total<lim) { p.total+=val; rd[p.id]=val; added = true; }
+            document.getElementById(`s${p.id}`).value="";
         });
-        rounds.push(rd); saveData();
+        if(added) { rounds.push(rd); saveData(); }
     }
 
     function undoRound() {
@@ -203,16 +207,21 @@
 
     function completeMatch() {
         if(!players.length || !confirm("Archive and reset scores?")) return;
-        const lim=parseInt(document.getElementById('pointLimit').value);
-        const winList=players.filter(p=>p.total<lim).map(p=>p.name).join(', ');
-        const now=new Date();
-        archive.push({
+        const lim = parseInt(document.getElementById('pointLimit').value);
+        const winList = players.filter(p => p.total < lim).map(p => p.name).join(', ') || "No Winner";
+        const now = new Date();
+        
+        // Structured Entry for clean Daywise grouping
+        const matchEntry = {
             date: now.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}),
             time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
             winners: winList,
-            summary: players.map(p=>`${p.name}: ${p.total}`).join(' | ')
-        });
-        rounds=[]; payouts=[]; players.forEach(p=>p.total=0); saveData();
+            summary: players.map(p => `${p.name}: ${p.total}`).join(' | ')
+        };
+        
+        archive.push(matchEntry);
+        rounds=[]; payouts=[]; players.forEach(p=>p.total=0); 
+        saveData();
     }
 
     function addPlayer() { const n=prompt("Name:"); if(n) {players.push({id:Date.now(), name:n, total:0}); saveData();} }
